@@ -1,0 +1,57 @@
+---
+- hosts: localhost
+  gather_facts: yes
+  #  vars:
+  #  myhostame: rpi-homeserver.local
+  #vars_files:
+  #  - /root/vars.yml
+  become: yes
+  tasks:
+    - name: Read device information (always use unit when probing)
+      parted: device=/dev/mmcblk0 unit=s
+      register: mmcblk0_info
+
+    - debug:
+        var: mmcblk0_info.partitions[2].begin
+        verbosity: 0
+
+    - name: Replace 3rd partition
+      shell: |
+        fdisk /dev/mmcblk0 <<EOF
+        d
+        3
+        n
+        p
+        3
+        {{ mmcblk0_info.partitions[2].begin | string | splitext | max }}
+        
+        p
+        w
+        EOF
+      register: mmcblk0_out
+
+    - debug:
+        var: mmcblk0_out
+        verbosity: 0
+
+    - name: Extend the FS
+      filesystem:
+        fstype: 'ext4'
+        dev: '/dev/mmcblk0p3'
+        resizefs: yes
+    
+    - name: Install RPMfusion repositories
+      shell: rpm -q rpmfusion-nonfree-release || dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+
+    - name: Remove packages
+      package:
+        name:
+          - sylpheed
+        state: absent
+
+    - name: Install packages
+      package:
+        name:
+          - vim
+          - screen
+        state: present
