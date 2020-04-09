@@ -68,3 +68,10 @@
           - cockpit-podman
           - cockpit-storaged
         state: present
+        
+    - name: Force systemd to reread config, enable and start service
+      systemd:
+        name: cockpit.socket
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
