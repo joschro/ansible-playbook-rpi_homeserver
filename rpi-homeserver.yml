@@ -40,6 +40,12 @@
         dev: '/dev/mmcblk0p3'
         resizefs: yes
     
+    - name: Install EPEL repo
+      package:
+        name:
+          - epel-release
+        state: present
+          
     - name: Install RPMfusion repositories
       shell: rpm -q rpmfusion-nonfree-release || dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
@@ -54,4 +60,11 @@
         name:
           - vim
           - screen
+          - mdadm
+          - usbutils
+          - cockpit-dashboard
+          - cockpit-composer
+          - cockpit-machines
+          - cockpit-podman
+          - cockpit-storaged
         state: present
