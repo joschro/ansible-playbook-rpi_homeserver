@@ -58,6 +58,9 @@
           - sylpheed
         state: absent
 
+#    - name: Enable module streams
+#      command: dnf module enable -y container-tools virt
+
     - name: Install packages
       package:
         name:
@@ -68,7 +71,7 @@
           - cockpit-dashboard
           - cockpit-composer
           - cockpit-machines
-          - cockpit-podman
+          # - cockpit-podman
           - cockpit-storaged
         state: present
         
@@ -78,3 +81,9 @@
         state: restarted
         daemon_reload: yes
         enabled: yes
+
+    - name: Update packages
+      package:
+        name: '*'
+        state: latest
+
