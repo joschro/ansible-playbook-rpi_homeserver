@@ -68,10 +68,12 @@
           - screen
           - mdadm
           - usbutils
+          - podman
+          - podman-docker
           - cockpit-dashboard
           - cockpit-composer
           - cockpit-machines
-          # - cockpit-podman
+          - cockpit-podman
           - cockpit-storaged
         state: present
         
