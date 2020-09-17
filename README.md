@@ -14,10 +14,21 @@ Instructions
 * insert SD card into Raspberry Pi and boot
 
 * login after initial setup and open terminal:
-
+  
+  in case you need to change the keyboard layout:
   ```
-  wget https://github.com/joschro/ansible-playbook-rpi3_fedora_workstation/archive/master.zip
+  loadkeys de
+  ```
+  
+  install base environment with cockpit, a management web ui:
+  ```
+  wget https://github.com/joschro/ansible-playbook-rpi_homeserver/archive/master.zip
   unzip master.zip
-  cd ansible-playbook-rpi3_fedora_workstation-master
+  cd ansible-playbook-rpi_homeserver
   sh run.sh
-  ````
+  ```
+  optional modules, depending on the use case:
+  ```
+  ansible-playbook pihole-container.yml
+  ansible-playbook tang-container.yml
+  ```
