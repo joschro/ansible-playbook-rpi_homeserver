@@ -75,6 +75,7 @@
           - cockpit-machines
           - cockpit-podman
           - cockpit-storaged
+          - cockpit-session-recording
         state: present
         
     - name: Force systemd to reread config, enable and start service
