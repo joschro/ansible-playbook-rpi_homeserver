@@ -6,6 +6,7 @@
     myhostame: pihole.schroeder-home.org
     myname: pihole
     mywebpasswd: piholepassword
+    exported_container_volumes_basedir: /var/lib/containers/storage/volumes
     container_state: running
     container_name: pihole
     container_image: pihole/pihole
@@ -31,57 +32,31 @@
   #  - /root/vars.yml
   become: yes
   tasks:
-    - name: make sure network bridge cni-podman0 exists
-      nmcli:
-        type: bridge
-        ifname: cni-podman0
-        conn_name: cni-podman0
-        state: present
+    - name: ensure podman is enabled
+      systemd:
+        name: io.podman
+        state: started
+        enabled: yes
+        masked: no
+        #    - name: make sure network bridge cni-podman0 exists
+        #      nmcli:
+        #        type: bridge
+        #        ifname: cni-podman0
+        #        conn_name: cni-podman0
+        #        state: present
+    - name: ensure container files mount point on host
+      tags: mount
+      file:
+        path: "{{exported_container_volumes_basedir}}/{{ item }}"
+        owner: "{{ container_dir_owner }}"
+        group: "{{ container_dir_group }}"
+        state: directory
+        recurse: yes
+      with_items:
+        - "{{container_dir_config}}"
+        - "{{container_dir_data}}"
+    - name: ensure container state
+      tags: container
+      import_role:
+        name: podman_container_systemd
 
-    - name: ensure pihole container is running
-
-  tasks:
-
-  - name: ensure container files mount point on host
-    tags: mount
-    file:
-      path: "{{exported_container_volumes_basedir}}/{{ item }}"
-      owner: "{{ container_dir_owner }}"
-      group: "{{ container_dir_group }}"
-      state: directory
-      recurse: yes
-    with_items:
-      - "{{container_dir_addons}}"
-      - "{{container_dir_config}}"
-      - "{{container_dir_data}}"
-
-  - name: ensure container state
-    tags: container
-    import_role:
-      name: podman_container_systemd
-
-
-
-ip li sh | grep cni-podman0 || ip link add cni-podman0 type bridge
-podman volume ls | grep pihole_pihole || podman volume create pihole_pihole
-podman volume ls | grep pihole_dnsmasq || podman volume create pihole_dnsmasq
-
-podman run -d \
-        --privileged \
-        --restart=always \
-        --name={{ myname }} \
-        --hostname {{ myhostame }} \
-        -e TZ=Europe/Berlin \
-        -e WEBPASSWORD={{ mywebpasswd }} \
-        -e SERVERIP={{ ansible_facts.ansible_default_ipv4.address }} \
-        -v pihole_pihole:/etc/pihole:Z \
-        -v pihole_dnsmasq:/etc/dnsmasq.d:Z \
-        --dns=127.0.0.1 --dns=1.1.1.1 \
-        -p 80:80 \
-        -p 67:67/udp \
-        -p {{ ansible_facts.ansible_default_ipv4.address }}:53:53/udp \
-        pihole/pihole
-# --memory 512m --cpus 1
-
-# optional:
-# encrypt /var/lib/containers/storage/volumes on mmcblk0p4
